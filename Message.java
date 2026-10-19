@@ -9,12 +9,10 @@ import java.util.concurrent.ThreadLocalRandom;
 
 public class Message {
 
-    // ---------- Shared (static) state ----------
     private static final List<Message> sentMessages = new ArrayList<>();
     private static final List<Message> storedMessages = new ArrayList<>();
     private static String storagePath = "storedMessages.json";
 
-    // ---------- Per-message data ----------
     private final String messageID;
     private final int messageNumber;      // 0 for the first message, 1 for the second, ...
     private final String recipient;
@@ -29,9 +27,7 @@ public class Message {
         this.messageHash = createMessageHash();
     }
 
-    // ---------- Auto generation ----------
-
-    /** Randomly generated ten-digit message ID (leading zeros allowed). */
+    
     public static String generateMessageID() {
         String id = "";
         for (int i = 0; i < 10; i++) {
@@ -51,7 +47,7 @@ public class Message {
         return "Message ID generated: " + messageID;
     }
 
-    /** Recipient must start with an international code (+) and be no more than ten digits after the code. */
+    
     public String checkRecipientCell() {
         if (recipient != null && recipient.matches("^\\+\\d{3,13}$")) {
             return "Cell phone number successfully captured.";
@@ -60,7 +56,6 @@ public class Message {
                 + "Please correct the number and try again.";
     }
 
-    /** Message must not exceed 250 characters. */
     public String checkMessageLength() {
         if (messageText == null) {
             return "Please enter a message of less than 250 characters.";
@@ -72,12 +67,6 @@ public class Message {
         return "Message exceeds 250 characters by " + (length - 250) + ", please reduce the size.";
     }
 
-    // ---------- Hash ----------
-
-    /**
-     * First two digits of the ID : message number : first word + last word, all caps.
-     * e.g. 00:0:HITONIGHT
-     */
     public final String createMessageHash() {
         String firstTwo = (messageID == null) ? "" : messageID.substring(0, Math.min(2, messageID.length()));
 
@@ -93,17 +82,12 @@ public class Message {
         return (firstTwo + ":" + messageNumber + ":" + firstWord + lastWord).toUpperCase();
     }
 
-    /** Removes punctuation such as the "?" in "tonight?" so only letters/digits remain. */
     private static String cleanWord(String word) {
         return word.replaceAll("[^A-Za-z0-9]", "");
     }
 
     // ---------- Send / disregard / store ----------
 
-    /**
-     * 1 = send, 2 = disregard, 3 = store for later.
-     * Returns the message the system should show for that choice.
-     */
     public String sentMessage(int choice) {
         switch (choice) {
             case 1:
@@ -147,10 +131,6 @@ public class Message {
 
     // ---------- JSON storage ----------
 
-    /**
-     * Adds this message to the stored list and writes every stored message to a JSON file.
-     * Written by hand so no extra library has to be installed.
-     */
     public void storeMessage() {
         storedMessages.add(this);
 
@@ -209,7 +189,6 @@ public class Message {
 
     public static void setStoragePath(String path) { storagePath = path; }
 
-    /** Clears the shared lists (used by the unit tests). */
     public static void resetAll() {
         sentMessages.clear();
         storedMessages.clear();
