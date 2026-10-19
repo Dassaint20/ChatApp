@@ -63,7 +63,6 @@ public class ChatApp {
             }
         } while (!isCellValid);
 
-        // Everything passed individually - now officially register the user.
         String registrationMessage = login.registerUser(username, password, cellPhoneNumber);
         System.out.println("\n" + registrationMessage);
 
