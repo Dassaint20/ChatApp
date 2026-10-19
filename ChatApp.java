@@ -2,8 +2,9 @@ import java.util.Scanner;
 
 public class ChatApp {
 
+    private static final Scanner scanner = new Scanner(System.in);
+
     public static void main(String[] args) {
-        Scanner scanner = new Scanner(System.in);
 
         System.out.println("=== Welcome to the Chat App Registration ===");
 
@@ -15,6 +16,7 @@ public class ChatApp {
 
         Login login = new Login(firstName, lastName);
 
+        // ---------- USERNAME ----------
         String username;
         boolean isUsernameValid;
         do {
@@ -74,9 +76,130 @@ public class ChatApp {
         String loginPassword = scanner.nextLine();
 
         boolean loginSuccessful = login.loginUser(loginUsername, loginPassword);
-        String loginStatusMessage = login.returnLoginStatus(loginSuccessful);
-        System.out.println("\n" + loginStatusMessage);
+        System.out.println("\n" + login.returnLoginStatus(loginSuccessful));
+
+        // ---------- PART 2: only logged-in users may send messages ----------
+        if (loginSuccessful) {
+            runQuickChat();
+        }
 
         scanner.close();
+    }
+
+    // =====================================================================
+    // PART 2 - QuickChat
+    // =====================================================================
+
+    private static void runQuickChat() {
+        System.out.println("\nWelcome to QuickChat.");
+
+        int maxMessages = readInt("\nHow many messages do you wish to enter? ", 1, Integer.MAX_VALUE);
+        int messagesEntered = 0;   // every message entered counts against the limit (sent, discarded or stored)
+
+        boolean running = true;
+        while (running) {
+            System.out.println("\n--- QuickChat Menu ---");
+            System.out.println("1) Send Messages");
+            System.out.println("2) Show recently sent messages");
+            System.out.println("3) Quit");
+
+            int choice = readInt("Choose an option: ", 1, 3);
+
+            switch (choice) {
+                case 1:
+                    if (messagesEntered >= maxMessages) {
+                        System.out.println("You have already entered the " + maxMessages + " message(s) you set.");
+                        break;
+                    }
+                    for (; messagesEntered < maxMessages; messagesEntered++) {
+                        System.out.println("\n--- Message " + (messagesEntered + 1) + " of " + maxMessages + " ---");
+                        enterMessage(messagesEntered);
+                    }
+                    System.out.println("\nTotal number of messages sent: "
+                            + Message.returnTotalMessages());
+                    break;
+                case 2:
+                    System.out.println("Coming Soon.");
+                    break;
+                case 3:
+                    System.out.println("\nTotal number of messages sent: "
+                            + Message.returnTotalMessages());
+                    System.out.println("Goodbye!");
+                    running = false;
+                    break;
+                default:
+                    break;
+            }
+        }
+    }
+
+    /** Captures one message, then lets the user send, disregard or store it. */
+    private static void enterMessage(int messageNumber) {
+        // --- Recipient ---
+        String recipient;
+        String recipientStatus;
+        do {
+            System.out.print("Enter the recipient's cell number (with international code, e.g. +27718693002): ");
+            recipient = scanner.nextLine().trim();
+            recipientStatus = new Message("0000000000", messageNumber, recipient, "").checkRecipientCell();
+            System.out.println(recipientStatus);
+        } while (!recipientStatus.equals("Cell phone number successfully captured."));
+
+        // --- Message text ---
+        String text;
+        String lengthStatus;
+        do {
+            System.out.print("Enter your message (max 250 characters): ");
+            text = scanner.nextLine();
+            lengthStatus = new Message("0000000000", messageNumber, recipient, text).checkMessageLength();
+            if (!lengthStatus.equals("Message ready to send.")) {
+                System.out.println("Please enter a message of less than 250 characters.");
+            }
+            System.out.println(lengthStatus);
+        } while (!lengthStatus.equals("Message ready to send."));
+
+        // --- Build the message (ID is auto generated) ---
+        Message message = new Message(Message.generateMessageID(), messageNumber, recipient, text);
+        System.out.println(message.getMessageIDStatus());
+
+        // --- Send / disregard / store ---
+        System.out.println("\nWhat would you like to do with this message?");
+        System.out.println("1) Send Message");
+        System.out.println("2) Disregard Message");
+        System.out.println("3) Store Message to send later");
+        int action = readInt("Choose an option: ", 1, 3);
+
+        System.out.println(message.sentMessage(action));
+
+        if (action == 1) {
+            System.out.println("\n" + message.displayDetails());
+        } else if (action == 2) {
+            int zero;
+            do {
+                zero = readInt("Enter 0 to delete the message: ", 0, 0);
+            } while (zero != 0);
+            System.out.println("Message deleted.");
+        }
+    }
+
+    /** Keeps asking until the user types a whole number between min and max. */
+    private static int readInt(String prompt, int min, int max) {
+        while (true) {
+            System.out.print(prompt);
+            String input = scanner.nextLine().trim();
+            try {
+                int value = Integer.parseInt(input);
+                if (value >= min && value <= max) {
+                    return value;
+                }
+            } catch (NumberFormatException e) {
+                // fall through to the error message
+            }
+            if (max == Integer.MAX_VALUE) {
+                System.out.println("Please enter a whole number of " + min + " or more.");
+            } else {
+                System.out.println("Please enter a number between " + min + " and " + max + ".");
+            }
+        }
     }
 }
