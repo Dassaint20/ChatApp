@@ -4,3 +4,8 @@ Creating an easy chat app for students
 ChatApp updated
 new Message.java 
 new MessageTest.java
+
+PART 3 Addition
+Testjava
+ARRAYS
+
