@@ -77,9 +77,9 @@ public class ChatApp {
         boolean loginSuccessful = login.loginUser(loginUsername, loginPassword);
         System.out.println("\n" + login.returnLoginStatus(loginSuccessful));
 
-        // ---------- PART 2: only logged-in users may send messages ----------
+        // ---------- PART 2 & 3: only logged-in users may send messages ----------
         if (loginSuccessful) {
-            runQuickChat();
+            runQuickChat(login.getCellPhoneNumber());
         }
 
         scanner.close();
@@ -89,7 +89,7 @@ public class ChatApp {
     // PART 2 - QuickChat
     // =====================================================================
 
-    private static void runQuickChat() {
+    private static void runQuickChat(String sender) {
         System.out.println("\nWelcome to QuickChat.");
 
         int maxMessages = readInt("\nHow many messages do you wish to enter? ", 1, Integer.MAX_VALUE);
@@ -101,8 +101,9 @@ public class ChatApp {
             System.out.println("1) Send Messages");
             System.out.println("2) Show recently sent messages");
             System.out.println("3) Quit");
+            System.out.println("4) Stored Messages");
 
-            int choice = readInt("Choose an option: ", 1, 3);
+            int choice = readInt("Choose an option: ", 1, 4);
 
             switch (choice) {
                 case 1:
@@ -112,13 +113,14 @@ public class ChatApp {
                     }
                     for (; messagesEntered < maxMessages; messagesEntered++) {
                         System.out.println("\n--- Message " + (messagesEntered + 1) + " of " + maxMessages + " ---");
-                        enterMessage(messagesEntered);
+                        enterMessage(messagesEntered, sender);
                     }
                     System.out.println("\nTotal number of messages sent: "
                             + Message.returnTotalMessages());
                     break;
                 case 2:
-                    System.out.println("Coming Soon.");
+                    // Full report of every message sent: Message Hash, Recipient, Message.
+                    System.out.println("\n" + Message.printMessages());
                     break;
                 case 3:
                     System.out.println("\nTotal number of messages sent: "
@@ -126,14 +128,72 @@ public class ChatApp {
                     System.out.println("Goodbye!");
                     running = false;
                     break;
+                case 4:
+                    // Read the JSON file back into the Stored Messages array, then show the submenu.
+                    int loaded = Message.loadStoredMessages();
+                    System.out.println("\nLoaded " + loaded + " stored message(s) from "
+                            + Message.getStoragePath());
+                    storedMessagesMenu();
+                    break;
                 default:
                     break;
             }
         }
     }
 
+    // =====================================================================
+    // PART 3 - Stored Messages submenu (4th main menu option)
+    // =====================================================================
+
+    private static void storedMessagesMenu() {
+        boolean back = false;
+        while (!back) {
+            System.out.println("\n--- Stored Messages Menu ---");
+            System.out.println("a) Display the sender and recipient of all stored messages");
+            System.out.println("b) Display the longest stored message");
+            System.out.println("c) Search for a message by message ID");
+            System.out.println("d) Search for all messages sent/stored for a particular recipient");
+            System.out.println("e) Delete a message using the message hash");
+            System.out.println("f) Display a report of all stored messages");
+            System.out.println("g) Back to main menu");
+
+            System.out.print("Choose an option: ");
+            String option = scanner.nextLine().trim().toLowerCase();
+
+            switch (option) {
+                case "a":
+                    System.out.println("\n" + Message.displaySenderAndRecipient());
+                    break;
+                case "b":
+                    System.out.println("\nLongest stored message:\n" + Message.displayLongestStoredMessage());
+                    break;
+                case "c":
+                    System.out.print("\nEnter the message ID to search for: ");
+                    System.out.println(Message.searchByMessageId(scanner.nextLine().trim()));
+                    break;
+                case "d":
+                    System.out.print("\nEnter the recipient's cell number (with international code): ");
+                    System.out.println(Message.searchByRecipient(scanner.nextLine().trim()));
+                    break;
+                case "e":
+                    System.out.print("\nEnter the message hash of the message to delete: ");
+                    System.out.println(Message.deleteMessageByHash(scanner.nextLine().trim()));
+                    break;
+                case "f":
+                    System.out.println("\n" + Message.displayReport());
+                    break;
+                case "g":
+                    back = true;
+                    break;
+                default:
+                    System.out.println("Invalid option. Please choose a letter from a to g.");
+                    break;
+            }
+        }
+    }
+
     /** Captures one message, then lets the user send, disregard or store it. */
-    private static void enterMessage(int messageNumber) {
+    private static void enterMessage(int messageNumber, String sender) {
         // --- Recipient ---
         String recipient;
         String recipientStatus;
@@ -158,7 +218,7 @@ public class ChatApp {
         } while (!lengthStatus.equals("Message ready to send."));
 
         // --- Build the message (ID is auto generated) ---
-        Message message = new Message(Message.generateMessageID(), messageNumber, recipient, text);
+        Message message = new Message(Message.generateMessageID(), messageNumber, sender, recipient, text);
         System.out.println(message.getMessageIDStatus());
 
         // --- Send / disregard / store ---
@@ -202,3 +262,4 @@ public class ChatApp {
         }
     }
 }
+
