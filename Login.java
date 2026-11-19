@@ -9,13 +9,13 @@ public class Login {
     private final String firstName;
     private final String lastName;
 
-  
+
     public Login(String firstName, String lastName) {
         this.firstName = firstName;
         this.lastName = lastName;
     }
 
-   
+
     public boolean checkUserName(String username) {
         if (username == null) {
             return false;
@@ -37,12 +37,12 @@ public class Login {
         return hasMinLength && hasCapital && hasNumber && hasSpecialChar;
     }
 
-  
+
     public boolean checkCellPhoneNumber(String cellPhoneNumber) {
         if (cellPhoneNumber == null) {
             return false;
         }
- 
+
         String regex = "^\\+27\\d{1,10}$";
         return Pattern.matches(regex, cellPhoneNumber);
     }
@@ -61,7 +61,7 @@ public class Login {
             return "Cell phone number incorrectly formatted or does not contain international code.";
         }
 
-  
+
         this.username = username;
         this.password = password;
         this.cellPhoneNumber = cellPhoneNumber;
@@ -69,7 +69,7 @@ public class Login {
         return "You have successfully registered.";
     }
 
-  
+
     public boolean loginUser(String username, String password) {
         return username != null && username.equals(this.username)
                 && password != null && password.equals(this.password);
@@ -81,5 +81,10 @@ public class Login {
             return "Welcome " + firstName + ", " + lastName + " it is great to see you again.";
         }
         return "Username or password incorrect, please try again.";
+    }
+
+    /** The registered cell number is used as the sender of every message. */
+    public String getCellPhoneNumber() {
+        return cellPhoneNumber;
     }
 }
