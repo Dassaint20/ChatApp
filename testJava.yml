@@ -1,0 +1,28 @@
+# testJava.yml - runs the Task (MessageTest) unit tests on every push / pull request.
+# Save this file as:  .github/workflows/testJava.yml  in the root of your GitHub repo.
+name: Java CI - Unit Tests
+
+on: [push, pull_request]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Download JUnit Platform Console Standalone
+        run: |
+          wget -q https://repo1.maven.org/maven2/org/junit/platform/junit-platform-console-standalone/1.10.2/junit-platform-console-standalone-1.10.2.jar -O junit-platform.jar
+
+      - name: Compile sources and tests
+        run: javac -cp . -d . Message.java Login.java ChatApp.java MessageTest.java
+
+      - name: Run unit tests
+        run: java -jar junit-platform.jar --class-path . --select-class MessageTest --details=tree
